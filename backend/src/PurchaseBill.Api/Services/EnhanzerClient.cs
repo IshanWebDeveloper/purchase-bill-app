@@ -67,7 +67,7 @@ public class EnhanzerClient(HttpClient http, IOptions<EnhanzerOptions> options, 
             if (attempt >= _opts.MaxRetries)
                 throw new UpstreamUnavailableException($"Enhanzer is not responding properly ({failure}).");
 
-            await Task.Delay(TimeSpan.FromSeconds(2 * (attempt + 1)), ct);
+            await Task.Delay(TimeSpan.FromSeconds(_opts.RetryDelaySeconds * (attempt + 1)), ct);
         }
     }
 }

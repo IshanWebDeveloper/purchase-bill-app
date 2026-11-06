@@ -5,6 +5,9 @@ public class EnhanzerOptions
     public string BaseUrl { get; set; } = string.Empty;
     public int TimeoutSeconds { get; set; } = 60;
     public int MaxRetries { get; set; } = 2;
+
+    /// <summary>Base wait between retries; attempt n waits n x this. Tests set it to 0.</summary>
+    public int RetryDelaySeconds { get; set; } = 2;
 }
 
 public class JwtOptions
