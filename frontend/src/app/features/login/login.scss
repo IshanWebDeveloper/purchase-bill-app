@@ -1,0 +1,79 @@
+$gradient: linear-gradient(90deg, #4fc3f7 0%, #7e57c2 100%);
+
+.login-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: #f5f7fb;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 40px 32px 36px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 32px rgb(31 38 135 / 12%);
+}
+
+.greeting {
+  margin: 0;
+  font-size: 2.75rem;
+  line-height: 1.2;
+  font-weight: 500;
+  color: #1c1b4b;
+}
+
+.subtitle {
+  margin: 4px 0 28px;
+  color: #6b7280;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// Underlined fields: a Material filled field with the container removed.
+.underlined {
+  --mat-form-field-filled-active-indicator-height: 1px;
+  --mat-form-field-filled-focus-active-indicator-height: 2px;
+  --mat-form-field-filled-active-indicator-color: #9aa3b2;
+  --mat-form-field-filled-container-color: transparent;
+  --mat-form-field-filled-hover-state-layer-opacity: 0;
+  --mat-form-field-filled-focus-state-layer-opacity: 0;
+  width: 100%;
+}
+
+.form-error {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #b3261e;
+  background: #fdecea;
+}
+
+.login-button {
+  --mat-button-filled-container-height: 48px;
+  --mat-button-filled-label-text-color: #fff;
+  --mat-button-filled-disabled-label-text-color: rgb(255 255 255 / 85%);
+  margin-top: 20px;
+  background: $gradient;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+
+  &[disabled] {
+    background: $gradient;
+    opacity: 0.7;
+  }
+
+  span {
+    margin-left: 8px;
+  }
+  span:only-child {
+    margin-left: 0;
+  }
+}
