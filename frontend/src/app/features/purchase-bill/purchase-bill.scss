@@ -1,0 +1,110 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: #f5f7fb;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+
+  h1 {
+    flex: 1;
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+  }
+
+  .user {
+    color: #6b7280;
+  }
+
+  @media (max-width: 560px) {
+    padding: 12px 16px;
+    .user {
+      display: none;
+    }
+  }
+}
+
+.content {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  gap: 24px;
+
+  @media (max-width: 560px) {
+    padding: 16px;
+    gap: 16px;
+  }
+}
+
+.card {
+  padding: 20px 24px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 12px rgb(31 38 135 / 8%);
+  min-width: 0; // lets the wide table scroll inside the card
+
+  h2 {
+    margin: 0 0 16px;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  // The summary panel draws its own heading.
+  &.summary {
+    align-self: start;
+  }
+}
+
+// Items table beside the summary on desktop; the summary stacks below on smaller screens.
+.lower {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 24px;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: #b3261e;
+  background: #fdecea;
+}
+
+.error {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #b3261e;
+  background: #fdecea;
+}
+
+.success {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #14532d;
+  background: #e3f6e8;
+}
+
+.save {
+  width: 100%;
+  --mat-button-filled-container-height: 44px;
+}

@@ -1,27 +1,84 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AuthService } from '../../core/auth.service';
+import { toUserMessage } from '../../core/error.interceptor';
+import { Location } from '../../core/models/auth.models';
+import { LineItem } from '../../core/models/purchase-bill.models';
+import { PurchaseBillApi } from '../../core/purchase-bill.api';
+import { ItemForm } from './item-form/item-form';
+import { ItemTable } from './item-table/item-table';
+import { SummaryPanel } from './summary-panel/summary-panel';
 
-// Placeholder shell so the route guard can be exercised; the form, table and summary come in the next step.
 @Component({
   selector: 'app-purchase-bill',
-  imports: [MatButtonModule],
-  template: `
-    <main class="page">
-      <header>
-        <h1>Purchase Bill</h1>
-        <span>{{ auth.displayName() }}</span>
-        <button mat-stroked-button type="button" (click)="auth.logout()">Log out</button>
-      </header>
-    </main>
-  `,
-  styles: `
-    .page { padding: 24px 16px; }
-    header { display: flex; align-items: center; gap: 16px; }
-    h1 { flex: 1; margin: 0; font-size: 1.5rem; }
-  `,
+  imports: [MatButtonModule, MatProgressBarModule, ItemForm, ItemTable, SummaryPanel],
+  templateUrl: './purchase-bill.html',
+  styleUrl: './purchase-bill.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PurchaseBill {
   protected readonly auth = inject(AuthService);
+  private readonly api = inject(PurchaseBillApi);
+
+  protected readonly locations = signal<Location[]>([]);
+  protected readonly loadingLocations = signal(true);
+  protected readonly locationsError = signal('');
+
+  protected readonly rows = signal<LineItem[]>([]);
+  protected readonly saving = signal(false);
+  protected readonly saveError = signal('');
+  protected readonly savedMessage = signal('');
+
+  // Summary values, always derived from the table rows.
+  protected readonly totalItems = computed(() => this.rows().length);
+  protected readonly totalQuantity = computed(() => this.rows().reduce((sum, r) => sum + r.qty, 0));
+
+  constructor() {
+    this.loadLocations();
+  }
+
+  protected loadLocations(): void {
+    this.loadingLocations.set(true);
+    this.locationsError.set('');
+    this.api.getLocations().subscribe({
+      next: (locations) => {
+        this.locations.set(locations);
+        this.loadingLocations.set(false);
+      },
+      error: (err: unknown) => {
+        this.locationsError.set(toUserMessage(err));
+        this.loadingLocations.set(false);
+      },
+    });
+  }
+
+  protected addRow(line: LineItem): void {
+    this.rows.update((rows) => [...rows, line]);
+    this.saveError.set('');
+    this.savedMessage.set('');
+  }
+
+  protected removeRow(index: number): void {
+    this.rows.update((rows) => rows.filter((_, i) => i !== index));
+  }
+
+  protected save(): void {
+    if (this.saving() || this.rows().length === 0) return;
+
+    this.saving.set(true);
+    this.saveError.set('');
+    this.savedMessage.set('');
+    this.api.create(this.rows()).subscribe({
+      next: (bill) => {
+        this.rows.set([]);
+        this.saving.set(false);
+        this.savedMessage.set(`Purchase bill #${bill.id} saved.`);
+      },
+      error: (err: unknown) => {
+        this.saveError.set(toUserMessage(err));
+        this.saving.set(false);
+      },
+    });
+  }
 }
