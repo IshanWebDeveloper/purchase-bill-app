@@ -16,6 +16,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             var (status, title) = ex switch
             {
                 InvalidCredentialsException => (StatusCodes.Status401Unauthorized, "Invalid email or password."),
+                InvalidRequestException => (StatusCodes.Status400BadRequest, ex.Message),
                 UpstreamUnavailableException => (StatusCodes.Status502BadGateway, "The Enhanzer service is unavailable. Please try again."),
                 _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
             };

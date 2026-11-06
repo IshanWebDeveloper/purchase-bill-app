@@ -4,6 +4,8 @@ namespace PurchaseBill.Api.Services;
 
 public class InvalidCredentialsException() : Exception("Invalid email or password.");
 
+public class InvalidRequestException(string message) : Exception(message);
+
 public class UpstreamUnavailableException(string message, Exception? inner = null) : Exception(message, inner);
 
 public interface IEnhanzerClient

@@ -26,6 +26,7 @@ builder.Services.AddHttpClient<IEnhanzerClient, EnhanzerClient>((sp, client) =>
     client.Timeout = TimeSpan.FromSeconds(opts.TimeoutSeconds);
 });
 builder.Services.AddScoped<LocationService>();
+builder.Services.AddScoped<PurchaseBillService>();
 builder.Services.AddSingleton<TokenService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
