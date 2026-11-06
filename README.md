@@ -154,6 +154,40 @@ docker-compose.yml        local SQL Server
 - **Validation in both places.** The form validates for fast feedback; the API validates again (data annotations, the item list, and that the batch is a saved location), because the browser can't be trusted.
 - **Batch list.** The dropdown shows every location saved so far, as the brief specifies ("from the previously saved Location_Details table"), not only the signed-in user's locations.
 
+## Deployment (Azure, free tier)
+
+Live app: **https://proud-hill-06f8e7600.4.azurestaticapps.net**
+API: `https://purchasebill-api-7p16h.azurewebsites.net` (no Swagger in production)
+
+| Piece | Azure service | Plan |
+|---|---|---|
+| Angular app | Static Web Apps | Free |
+| ASP.NET Core API | App Service (Linux, .NET 8) | F1 (free) |
+| Database | Azure SQL Database | Free offer: serverless, 32 GB, auto-pause |
+
+The API and database are in East Asia, the static site is served from a CDN. All three are on free tiers, so there is **no always-on host**:
+
+- After a period of inactivity the API and the database go to sleep. The first sign-in after that can take **one to two minutes** (App Service start, database resume and the Enhanzer staging server all cold-start together). The login button shows a spinner and the API retries automatically. Later requests take a few seconds.
+- The free App Service plan allows 60 CPU-minutes per day. It is meant for demos, not load.
+
+Configuration lives in App Service application settings, never in the repository: `Jwt__Key`, the `Default` SQL connection string, `Cors__AllowedOrigins__0` (the static site's origin), `Enhanzer__MaxRetries` and `Enhanzer__TimeoutSeconds` (kept low enough that a cold start finishes inside Azure's 230-second request limit), and `ASPNETCORE_ENVIRONMENT=Production` (no Swagger, no automatic migrations).
+
+The database schema was created by running `database/purchase_bill_schema.sql`.
+
+To redeploy:
+
+```bash
+# API
+dotnet publish backend/src/PurchaseBill.Api -c Release -o publish
+# zip the contents of ./publish, then:
+az webapp deploy -n purchasebill-api-7p16h -g rg-purchase-bill --src-path api.zip --type zip
+
+# Frontend (set the API address in frontend/src/environments/environment.ts first)
+cd frontend && pnpm build
+# SWA_CLI_DEPLOYMENT_TOKEN comes from: az staticwebapp secrets list -n purchasebill-web-7p16h -g rg-purchase-bill
+pnpm dlx @azure/static-web-apps-cli deploy ./dist/frontend/browser --env production
+```
+
 ## Contributing
 
 Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) (for example `feat(api): ...`); a Husky hook rejects anything else.
