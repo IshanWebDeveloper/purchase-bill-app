@@ -28,7 +28,7 @@ export function toUserMessage(error: unknown): string {
     if (error.status === 0) return 'Cannot reach the server. Check your connection and try again.';
     if (error.status === 401) return 'Invalid email or password.';
     if (error.status === 400) return 'Please check the details you entered.';
-    if (error.status === 502) return 'The login service is not responding. Please try again in a moment.';
+    if (error.status === 502) return 'The service is not responding. Please try again in a moment.';
   }
   return 'Something went wrong. Please try again.';
 }
