@@ -1,4 +1,4 @@
 export const environment = {
-  // Production API base URL. Replace with the deployed API address before deploying.
-  apiUrl: 'http://localhost:5011',
+  // Production API (Azure App Service).
+  apiUrl: 'https://purchasebill-api-7p16h.azurewebsites.net',
 };
