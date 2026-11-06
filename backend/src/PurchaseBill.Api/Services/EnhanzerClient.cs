@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using PurchaseBill.Api.Models;
@@ -18,57 +18,54 @@ public class EnhanzerClient(HttpClient http, IOptions<EnhanzerOptions> options, 
             ApiBody = new EnhanzerLoginBody { Username = email, Pw = password }
         };
 
-        using var response = await PostWithRetryAsync(request, ct);
-
-        EnhanzerResponse? body;
-        try
-        {
-            body = await response.Content.ReadFromJsonAsync<EnhanzerResponse>(ct);
-        }
-        catch (Exception ex) when (ex is JsonException or NotSupportedException)
-        {
-            throw new UpstreamUnavailableException("Enhanzer returned an unreadable response.", ex);
-        }
-
-        if (body?.StatusCode is 401 or 403)
-            throw new InvalidCredentialsException();
-
-        var result = body?.ResponseBody?.FirstOrDefault()
-            ?? throw new UpstreamUnavailableException("Enhanzer returned an empty response.");
-
-        // Enhanzer reports bad credentials with HTTP 200 + Doc_Msg, so check the body, not the status code.
-        if (result.UserLocations is null || result.UserLocations.Count == 0)
-        {
-            if (string.Equals(result.DocMsg, "Invalid Login Details", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidCredentialsException();
-            throw new UpstreamUnavailableException($"Enhanzer login failed: {result.DocMsg ?? "no locations returned"}");
-        }
-
-        return result;
-    }
-
-    // The staging API can return 500 on a cold start; a retry usually succeeds.
-    private async Task<HttpResponseMessage> PostWithRetryAsync(EnhanzerRequest request, CancellationToken ct)
-    {
+        // The staging API is flaky: it can return HTTP 500, or HTTP 200 with Status_Code 0 and a null body,
+        // and then succeed on the next call. Retry those; fail fast on a definite answer.
         for (var attempt = 0; ; attempt++)
         {
+            var failure = "unknown";
             try
             {
-                var response = await http.PostAsJsonAsync(_opts.BaseUrl, request, ct);
-                if (response.IsSuccessStatusCode) return response;
+                // Send a fixed-length body (not JsonContent): the staging API intermittently ignores
+                // chunked request bodies and answers with Status_Code 0 and a null Response_Body.
+                using var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+                using var response = await http.PostAsync(_opts.BaseUrl, content, ct);
+                if (response.IsSuccessStatusCode)
+                {
+                    var raw = await response.Content.ReadAsStringAsync(ct);
+                    var body = JsonSerializer.Deserialize<EnhanzerResponse>(raw);
 
-                var status = (int)response.StatusCode;
-                response.Dispose();
-                logger.LogWarning("Enhanzer returned {Status} (attempt {Attempt})", status, attempt + 1);
-                if (attempt >= _opts.MaxRetries)
-                    throw new UpstreamUnavailableException($"Enhanzer returned HTTP {status}.");
+                    // Unknown accounts come back as HTTP 200 with Status_Code 401 and a null body.
+                    if (body?.StatusCode is 401 or 403)
+                        throw new InvalidCredentialsException();
+
+                    var result = body?.ResponseBody?.FirstOrDefault();
+                    if (result is not null)
+                    {
+                        if (result.UserLocations is { Count: > 0 })
+                            return result;
+
+                        // Wrong password: HTTP 200 + Doc_Msg, no locations.
+                        if (string.Equals(result.DocMsg, "Invalid Login Details", StringComparison.OrdinalIgnoreCase))
+                            throw new InvalidCredentialsException();
+
+                        throw new UpstreamUnavailableException($"Enhanzer login failed: {result.DocMsg ?? "no locations returned"}");
+                    }
+
+                    failure = $"empty response (Status_Code {body?.StatusCode})";
+                }
+                else
+                {
+                    failure = $"HTTP {(int)response.StatusCode}";
+                }
             }
-            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException && !ct.IsCancellationRequested)
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException && !ct.IsCancellationRequested)
             {
-                logger.LogWarning(ex, "Enhanzer call failed (attempt {Attempt})", attempt + 1);
-                if (attempt >= _opts.MaxRetries)
-                    throw new UpstreamUnavailableException("Could not reach Enhanzer.", ex);
+                failure = ex.GetType().Name;
             }
+
+            logger.LogWarning("Enhanzer call failed: {Failure} (attempt {Attempt}/{Max})", failure, attempt + 1, _opts.MaxRetries + 1);
+            if (attempt >= _opts.MaxRetries)
+                throw new UpstreamUnavailableException($"Enhanzer is not responding properly ({failure}).");
 
             await Task.Delay(TimeSpan.FromSeconds(2 * (attempt + 1)), ct);
         }
