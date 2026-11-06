@@ -1,0 +1,101 @@
+<form [formGroup]="form" (ngSubmit)="add()" novalidate class="item-form">
+  <mat-form-field appearance="outline">
+    <mat-label>Item</mat-label>
+    <input matInput formControlName="item" [matAutocomplete]="auto" autocomplete="off" />
+    <mat-autocomplete #auto="matAutocomplete">
+      @for (item of filteredItems(); track item) {
+        <mat-option [value]="item">{{ item }}</mat-option>
+      }
+    </mat-autocomplete>
+    @if (form.controls.item.hasError('required')) {
+      <mat-error>Item is required.</mat-error>
+    } @else if (form.controls.item.hasError('notInList')) {
+      <mat-error>Choose an item from the list.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Batch</mat-label>
+    <mat-select formControlName="batchCode">
+      @for (option of batchOptions(); track option.code) {
+        <mat-option [value]="option.code">{{ option.label }}</mat-option>
+      }
+    </mat-select>
+    @if (form.controls.batchCode.hasError('required')) {
+      <mat-error>Batch is required.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Standard Cost</mat-label>
+    <input matInput type="number" inputmode="decimal" min="0" step="0.01" formControlName="standardCost" />
+    @if (form.controls.standardCost.hasError('required')) {
+      <mat-error>Standard cost is required.</mat-error>
+    } @else if (form.controls.standardCost.hasError('min')) {
+      <mat-error>Cannot be negative.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Standard Price</mat-label>
+    <input matInput type="number" inputmode="decimal" min="0" step="0.01" formControlName="standardPrice" />
+    @if (form.controls.standardPrice.hasError('required')) {
+      <mat-error>Standard price is required.</mat-error>
+    } @else if (form.controls.standardPrice.hasError('min')) {
+      <mat-error>Cannot be negative.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Qty</mat-label>
+    <input matInput type="number" inputmode="numeric" min="1" step="1" formControlName="qty" />
+    @if (form.controls.qty.hasError('required')) {
+      <mat-error>Qty is required.</mat-error>
+    } @else if (form.controls.qty.hasError('min')) {
+      <mat-error>Qty must be at least 1.</mat-error>
+    } @else if (form.controls.qty.hasError('integer')) {
+      <mat-error>Qty must be a whole number.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Free Qty</mat-label>
+    <input matInput type="number" inputmode="numeric" min="0" step="1" formControlName="freeQty" />
+    @if (form.controls.freeQty.hasError('required')) {
+      <mat-error>Free qty is required (use 0).</mat-error>
+    } @else if (form.controls.freeQty.hasError('min')) {
+      <mat-error>Cannot be negative.</mat-error>
+    } @else if (form.controls.freeQty.hasError('integer')) {
+      <mat-error>Must be a whole number.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Discount %</mat-label>
+    <input matInput type="number" inputmode="decimal" min="0" max="100" step="0.01" formControlName="discountPercent" />
+    @if (form.controls.discountPercent.hasError('required')) {
+      <mat-error>Discount is required (use 0).</mat-error>
+    } @else if (form.controls.discountPercent.hasError('min') || form.controls.discountPercent.hasError('max')) {
+      <mat-error>Must be between 0 and 100.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="calculated" subscriptSizing="dynamic">
+    <mat-label>Margin</mat-label>
+    <input matInput readonly tabindex="-1" [value]="margin() | number: '1.2-2'" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="calculated" subscriptSizing="dynamic">
+    <mat-label>Total Cost</mat-label>
+    <input matInput readonly tabindex="-1" [value]="totalCost() | number: '1.2-2'" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="calculated" subscriptSizing="dynamic">
+    <mat-label>Total Selling</mat-label>
+    <input matInput readonly tabindex="-1" [value]="totalSelling() | number: '1.2-2'" />
+  </mat-form-field>
+
+  <div class="actions">
+    <button mat-flat-button type="submit" [disabled]="form.invalid">Add</button>
+  </div>
+</form>

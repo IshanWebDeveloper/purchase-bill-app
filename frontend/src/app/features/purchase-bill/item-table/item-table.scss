@@ -1,0 +1,38 @@
+.scroll {
+  overflow-x: auto; // wide table scrolls sideways on small screens instead of breaking the page
+}
+
+table {
+  width: 100%;
+  min-width: 780px;
+}
+
+th,
+td {
+  padding: 0 8px;
+}
+
+th:first-child,
+td:first-child {
+  padding-left: 0;
+}
+
+.num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.empty {
+  margin: 0;
+  padding: 24px 0;
+  text-align: center;
+  color: #6b7280;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

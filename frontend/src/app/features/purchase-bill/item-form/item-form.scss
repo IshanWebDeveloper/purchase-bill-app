@@ -1,0 +1,42 @@
+.item-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 16px;
+
+  // Tablet: two columns. Phone: one column.
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (max-width: 560px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.calculated {
+  --mat-form-field-outlined-outline-color: #d9dde5;
+  --mat-form-field-outlined-hover-outline-color: #d9dde5;
+  --mat-form-field-outlined-focus-outline-color: #d9dde5;
+  background: #f4f6fa;
+  border-radius: 4px;
+
+  input {
+    font-weight: 500;
+  }
+}
+
+.actions {
+  // Last column of the totals row on desktop; its own full-width row on smaller screens.
+  grid-column: 4;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  button {
+    min-width: 120px;
+    --mat-button-filled-container-height: 48px;
+  }
+
+  @media (max-width: 900px) {
+    grid-column: 1 / -1;
+  }
+}
