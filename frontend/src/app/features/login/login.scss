@@ -70,10 +70,10 @@ form {
     opacity: 0.7;
   }
 
-  span {
-    margin-left: 8px;
-  }
-  span:only-child {
-    margin-left: 0;
+  // Spinner and "Signing in…" side by side.
+  .mdc-button__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
   }
 }
