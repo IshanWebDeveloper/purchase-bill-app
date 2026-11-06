@@ -17,8 +17,12 @@ var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOp
 if (jwt.Key.Length < 32)
     throw new InvalidOperationException("Jwt:Key must be set (min 32 chars). Use user-secrets or an environment variable.");
 
+// Retry transient SQL failures. The free Azure SQL tier auto-pauses when idle, and the first
+// connection after a pause fails with "database not currently available" until it resumes.
 builder.Services.AddDbContext<AppDbContext>(o =>
-    o.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+    o.UseSqlServer(
+        builder.Configuration.GetConnectionString("Default"),
+        sql => sql.EnableRetryOnFailure(maxRetryCount: 6, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null)));
 
 builder.Services.AddHttpClient<IEnhanzerClient, EnhanzerClient>((sp, client) =>
 {
