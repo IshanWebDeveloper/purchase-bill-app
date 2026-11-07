@@ -1,4 +1,4 @@
-import { buildLineItem, margin, totalCost, totalSelling } from './calculations';
+import { billTotals, buildLineItem, margin, totalCost, totalSelling } from './calculations';
 
 describe('purchase bill calculations', () => {
   it('Total Cost matches the assignment example (100 x 5, 20% => 400)', () => {
@@ -36,5 +36,23 @@ describe('purchase bill calculations', () => {
       discountPercent: 20,
     });
     expect(line).toMatchObject({ item: 'Mango', freeQty: 1, margin: 50, totalCost: 400, totalSelling: 750 });
+  });
+});
+
+describe('billTotals', () => {
+  const line = (cost: number, qty: number, disc: number) =>
+    buildLineItem({ item: 'Mango', batchCode: 'L1', batchName: 'Block 1', standardCost: cost, standardPrice: cost * 1.5, qty, freeQty: 0, discountPercent: disc });
+
+  it('is all zero for an empty bill', () => {
+    expect(billTotals([]).netTotal).toBe(0);
+  });
+
+  it('derives the sidebar figures from the rows (assignment example 100 x 5 at 20%)', () => {
+    const t = billTotals([line(100, 5, 20), line(10, 3, 0)]);
+    expect(t.grossTotal).toBe(530);
+    expect(t.itemDiscount).toBe(100);
+    expect(t.totalDiscounts).toBe(100);
+    expect(t.totalBeforeTax).toBe(430);
+    expect(t.netTotal).toBe(430); // = 400 + 30, the sum of the rows' Total Cost
   });
 });

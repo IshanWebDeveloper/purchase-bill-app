@@ -61,7 +61,7 @@
       </section>
 
       <aside class="summary" aria-label="Summary">
-        <app-summary-panel [totalItems]="totalItems()" [totalQuantity]="totalQuantity()">
+        <app-summary-panel [totalItems]="totalItems()" [totalQuantity]="totalQuantity()" [totals]="totals()">
           @if (savedMessage()) {
             <p class="success" role="status">{{ savedMessage() }}</p>
           }

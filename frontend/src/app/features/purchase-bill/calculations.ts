@@ -29,3 +29,33 @@ export function buildLineItem(draft: LineDraft): LineItem {
     totalSelling: totalSelling(draft.standardPrice, draft.qty),
   };
 }
+
+/** Bill-level figures shown in the Summary sidebar. Display only; the API recomputes what it stores. */
+export interface BillTotals {
+  grossTotal: number;
+  itemDiscount: number;
+  overallDiscount: number;
+  totalDiscounts: number;
+  totalBeforeTax: number;
+  totalTax: number;
+  suspendedTax: number;
+  netTotal: number;
+}
+
+/**
+ * Gross Total = sum of Standard Cost x Qty (before discount).
+ * Item Discount = sum of the per-line discount amounts.
+ * Total Before Tax = Gross Total - Total Discounts, so Net Total equals the sum of the rows' Total Cost.
+ * There is no overall discount or tax data in this app, so those stay 0.
+ */
+export function billTotals(rows: readonly LineItem[]): BillTotals {
+  const grossTotal = round2(rows.reduce((sum, r) => sum + r.standardCost * r.qty, 0));
+  const itemDiscount = round2(rows.reduce((sum, r) => sum + (r.standardCost * r.qty * r.discountPercent) / 100, 0));
+  const overallDiscount = 0;
+  const totalDiscounts = round2(itemDiscount + overallDiscount);
+  const totalBeforeTax = round2(grossTotal - totalDiscounts);
+  const totalTax = 0;
+  const suspendedTax = 0;
+  const netTotal = round2(totalBeforeTax + totalTax);
+  return { grossTotal, itemDiscount, overallDiscount, totalDiscounts, totalBeforeTax, totalTax, suspendedTax, netTotal };
+}

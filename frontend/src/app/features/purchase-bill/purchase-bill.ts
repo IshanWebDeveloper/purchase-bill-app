@@ -7,6 +7,7 @@ import { toUserMessage } from '../../core/error.interceptor';
 import { Location } from '../../core/models/auth.models';
 import { LineItem } from '../../core/models/purchase-bill.models';
 import { PurchaseBillApi } from '../../core/purchase-bill.api';
+import { billTotals } from './calculations';
 import { ItemForm } from './item-form/item-form';
 import { ItemTable } from './item-table/item-table';
 import { SummaryPanel } from './summary-panel/summary-panel';
@@ -36,6 +37,7 @@ export class PurchaseBill {
   // Summary values, always derived from the table rows.
   protected readonly totalItems = computed(() => this.rows().length);
   protected readonly totalQuantity = computed(() => this.rows().reduce((sum, r) => sum + r.qty, 0));
+  protected readonly totals = computed(() => billTotals(this.rows()));
 
   constructor() {
     this.loadLocations();
