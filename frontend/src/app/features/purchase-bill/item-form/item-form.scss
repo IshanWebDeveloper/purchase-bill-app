@@ -1,42 +1,98 @@
+// Underlined fields on a white page, like the Enhanzer purchase bill screen.
 .item-form {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: 1.3fr 1.3fr 1.1fr 1.1fr 1fr 0.7fr 0.7fr;
   column-gap: 16px;
+  row-gap: 8px;
+  padding-top: 20px;
 
-  // Tablet: two columns. Phone: one column.
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  // Second row: Discount, Total Cost, Total Selling, Add.
+  .f-discount {
+    grid-column: 1;
+  }
+
+  // Tablet: three columns. Phone: one column.
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    .f-discount {
+      grid-column: auto;
+    }
   }
   @media (max-width: 560px) {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
+mat-form-field {
+  min-width: 0;
+  // Flat, underlined look: no grey fill, no hover/focus tint, no rounded top.
+  --mat-form-field-filled-container-color: transparent;
+  --mat-form-field-filled-disabled-container-color: transparent;
+  --mat-form-field-filled-hover-state-layer-opacity: 0;
+  --mat-form-field-filled-focus-state-layer-opacity: 0;
+  --mat-form-field-container-shape: 0;
+  --mat-form-field-filled-label-text-color: #7b808a;
+  --mat-form-field-filled-input-text-color: #2b2f36;
+  --mat-form-field-filled-active-indicator-color: #9aa0aa;
+  --mat-form-field-filled-hover-active-indicator-color: #2f5fc4;
+  --mat-form-field-filled-focus-active-indicator-color: #2f5fc4;
+  --mat-form-field-filled-focus-label-text-color: #2f5fc4;
+}
+
+// Read-only fields (Margin, Total Cost) have the grey box from the mockup.
 .calculated {
-  --mat-form-field-outlined-outline-color: #d9dde5;
-  --mat-form-field-outlined-hover-outline-color: #d9dde5;
-  --mat-form-field-outlined-focus-outline-color: #d9dde5;
-  background: #f4f6fa;
-  border-radius: 4px;
+  align-self: start; // keep the read-only boxes the same height as the editable fields
+  --mat-form-field-filled-container-color: #eceef1;
+  --mat-form-field-filled-active-indicator-color: transparent;
+  --mat-form-field-filled-hover-active-indicator-color: transparent;
+  --mat-form-field-filled-focus-active-indicator-color: transparent;
 
   input {
+    text-align: right;
     font-weight: 500;
   }
 }
 
-.actions {
-  // Last column of the totals row on desktop; its own full-width row on smaller screens.
-  grid-column: 4;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
+// Total Selling is read-only too, but drawn like the plain underlined fields.
+.calculated.plain {
+  --mat-form-field-filled-container-color: transparent;
+  --mat-form-field-filled-active-indicator-color: #9aa0aa;
+}
 
-  button {
-    min-width: 120px;
-    --mat-button-filled-container-height: 48px;
+.f-total-selling input,
+.f-cost input,
+.f-price input,
+.f-margin input {
+  text-align: right;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  padding-bottom: 8px;
+
+  @media (max-width: 560px) {
+    grid-column: 1 / -1;
+  }
+}
+
+.add {
+  padding: 4px 14px;
+  border: 0;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  background: #2ea44f;
+  cursor: pointer;
+
+  &:disabled {
+    background: #a9d6b6;
+    cursor: default;
   }
 
-  @media (max-width: 900px) {
-    grid-column: 1 / -1;
+  &:not(:disabled):hover {
+    background: #278a43;
   }
 }

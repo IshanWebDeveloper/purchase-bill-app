@@ -1,20 +1,39 @@
 .scroll {
   overflow-x: auto; // wide table scrolls sideways on small screens instead of breaking the page
+  margin-top: 20px;
 }
 
 table {
   width: 100%;
-  min-width: 780px;
+  min-width: 860px;
+  background: transparent;
+}
+
+// Blue column headings, striped rows, right-aligned numbers.
+th {
+  color: #2f5fc4;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  background: transparent;
+}
+
+td {
+  font-size: 0.8125rem;
+  color: #2b2f36;
+}
+
+tr.mat-mdc-row:nth-child(odd) {
+  background: #f1f2f4;
 }
 
 th,
 td {
-  padding: 0 8px;
+  padding: 0 10px;
 }
 
 th:first-child,
 td:first-child {
-  padding-left: 0;
+  padding-left: 12px;
 }
 
 .num {
@@ -24,7 +43,7 @@ td:first-child {
 
 .empty {
   margin: 0;
-  padding: 24px 0;
+  padding: 32px 0;
   text-align: center;
   color: #6b7280;
 }

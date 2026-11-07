@@ -1,5 +1,13 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input, output, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  ElementRef,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -13,6 +21,7 @@ import {
 } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -22,7 +31,9 @@ import { buildLineItem, ITEMS, margin, totalCost, totalSelling } from '../calcul
 
 /** The typed text must be one of the allowed items (case-insensitive). */
 const inList: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-  const value = String(control.value ?? '').trim().toLowerCase();
+  const value = String(control.value ?? '')
+    .trim()
+    .toLowerCase();
   if (!value) return null; // `required` reports the empty case
   return ITEMS.some((i) => i.toLowerCase() === value) ? null : { notInList: true };
 };
@@ -40,6 +51,7 @@ const integer: ValidatorFn = (control) => {
     MatAutocompleteModule,
     MatButtonModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatSelectModule,
   ],
@@ -52,6 +64,12 @@ export class ItemForm {
   readonly added = output<LineItem>();
 
   private readonly formDirective = viewChild(FormGroupDirective);
+  private readonly itemInput = viewChild<ElementRef<HTMLInputElement>>('itemInput');
+
+  /** Moves the cursor to the Item field (used by the title bar's "+" button). */
+  focusItem(): void {
+    this.itemInput()?.nativeElement.focus();
+  }
 
   protected readonly form = new FormGroup({
     item: new FormControl('', { nonNullable: true, validators: [Validators.required, inList] }),
@@ -60,10 +78,16 @@ export class ItemForm {
     standardPrice: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
     qty: new FormControl<number | null>(null, [Validators.required, Validators.min(1), integer]),
     freeQty: new FormControl<number | null>(0, [Validators.required, Validators.min(0), integer]),
-    discountPercent: new FormControl<number | null>(0, [Validators.required, Validators.min(0), Validators.max(100)]),
+    discountPercent: new FormControl<number | null>(0, [
+      Validators.required,
+      Validators.min(0),
+      Validators.max(100),
+    ]),
   });
 
-  private readonly values = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
+  private readonly values = toSignal(this.form.valueChanges, {
+    initialValue: this.form.getRawValue(),
+  });
 
   /** Autocomplete suggestions for whatever has been typed so far. */
   protected readonly filteredItems = computed(() => {
@@ -78,7 +102,10 @@ export class ItemForm {
     for (const l of locations) counts.set(l.locationName, (counts.get(l.locationName) ?? 0) + 1);
     return locations.map((l) => ({
       code: l.locationCode,
-      label: (counts.get(l.locationName) ?? 0) > 1 ? `${l.locationName} (${l.locationCode})` : l.locationName,
+      label:
+        (counts.get(l.locationName) ?? 0) > 1
+          ? `${l.locationName} (${l.locationCode})`
+          : l.locationName,
     }));
   });
 

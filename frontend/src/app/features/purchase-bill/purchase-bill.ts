@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AuthService } from '../../core/auth.service';
 import { toUserMessage } from '../../core/error.interceptor';
@@ -12,7 +13,7 @@ import { SummaryPanel } from './summary-panel/summary-panel';
 
 @Component({
   selector: 'app-purchase-bill',
-  imports: [MatButtonModule, MatProgressBarModule, ItemForm, ItemTable, SummaryPanel],
+  imports: [MatButtonModule, MatIconModule, MatProgressBarModule, ItemForm, ItemTable, SummaryPanel],
   templateUrl: './purchase-bill.html',
   styleUrl: './purchase-bill.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,6 +21,8 @@ import { SummaryPanel } from './summary-panel/summary-panel';
 export class PurchaseBill {
   protected readonly auth = inject(AuthService);
   private readonly api = inject(PurchaseBillApi);
+
+  protected readonly itemForm = viewChild(ItemForm);
 
   protected readonly locations = signal<Location[]>([]);
   protected readonly loadingLocations = signal(true);

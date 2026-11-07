@@ -1,50 +1,84 @@
-<header class="topbar">
-  <h1>Purchase Bill</h1>
-  <span class="user">{{ auth.displayName() }}</span>
-  <button mat-stroked-button type="button" (click)="auth.logout()">Log out</button>
-</header>
-
-@if (loadingLocations() || saving()) {
-  <mat-progress-bar mode="indeterminate" [attr.aria-label]="saving() ? 'Saving purchase bill' : 'Loading batches'" />
-}
-
-<main class="content">
-  @if (locationsError()) {
-    <div class="banner" role="alert">
-      <span>Could not load batches. {{ locationsError() }}</span>
-      <button mat-button type="button" (click)="loadLocations()">Retry</button>
+<div class="window">
+  <header class="titlebar">
+    <span class="material-symbols-outlined info" aria-hidden="true">info</span>
+    <div class="titles">
+      <h1>Purchase Bill</h1>
+      <p>Enter Information for the Purchase Bill</p>
     </div>
+    <span class="user">{{ auth.displayName() }}</span>
+    <div class="tools">
+      <button type="button" mat-icon-button aria-label="Reload batches" title="Reload batches" (click)="loadLocations()">
+        <mat-icon fontSet="material-symbols-outlined">refresh</mat-icon>
+      </button>
+      <button type="button" mat-icon-button aria-label="Add a new item" title="Add a new item" (click)="itemForm()?.focusItem()">
+        <mat-icon fontSet="material-symbols-outlined">add_circle</mat-icon>
+      </button>
+      <button
+        type="button"
+        mat-icon-button
+        aria-label="Save purchase bill"
+        title="Save purchase bill"
+        [disabled]="rows().length === 0 || saving()"
+        (click)="save()"
+      >
+        <mat-icon fontSet="material-symbols-outlined">check_circle</mat-icon>
+      </button>
+      <button type="button" mat-icon-button aria-label="Log out" title="Log out" (click)="auth.logout()">
+        <mat-icon fontSet="material-symbols-outlined">cancel</mat-icon>
+      </button>
+    </div>
+  </header>
+
+  @if (loadingLocations() || saving()) {
+    <mat-progress-bar mode="indeterminate" [attr.aria-label]="saving() ? 'Saving purchase bill' : 'Loading batches'" />
   }
 
-  <section class="card" aria-labelledby="add-item-title">
-    <h2 id="add-item-title">Add item</h2>
-    <app-item-form [locations]="locations()" (added)="addRow($event)" />
-  </section>
+  <div class="body">
+    <nav class="tabs" aria-label="Purchase bill sections">
+      <button type="button" class="tab" disabled>Header</button>
+      <button type="button" class="tab active" aria-current="page">Details</button>
+      <button type="button" class="tab" disabled>Notes</button>
+      <button type="button" class="tab" disabled>Documents</button>
+    </nav>
 
-  <div class="lower">
-    <section class="card" aria-labelledby="items-title">
-      <h2 id="items-title">Items</h2>
-      <app-item-table [rows]="rows()" [disabled]="saving()" (removed)="removeRow($event)" />
-    </section>
+    @if (locationsError()) {
+      <div class="banner" role="alert">
+        <span>Could not load batches. {{ locationsError() }}</span>
+        <button mat-button type="button" (click)="loadLocations()">Retry</button>
+      </div>
+    }
 
-    <section class="card summary" aria-label="Item summary">
-      <app-summary-panel [totalItems]="totalItems()" [totalQuantity]="totalQuantity()">
-        @if (savedMessage()) {
-          <p class="success" role="status">{{ savedMessage() }}</p>
-        }
-        @if (saveError()) {
-          <p class="error" role="alert">{{ saveError() }}</p>
-        }
-        <button
-          mat-flat-button
-          type="button"
-          class="save"
-          [disabled]="rows().length === 0 || saving()"
-          (click)="save()"
-        >
-          {{ saving() ? 'Saving…' : 'Save purchase bill' }}
-        </button>
-      </app-summary-panel>
-    </section>
+    <div class="layout">
+      <section class="panel" aria-label="Items">
+        <nav class="subtabs" aria-label="Detail sections">
+          <button type="button" class="tab active" aria-current="page">Items</button>
+          <button type="button" class="tab" disabled>Accounts</button>
+          <button type="button" class="tab" disabled>Taxes</button>
+        </nav>
+
+        <app-item-form [locations]="locations()" (added)="addRow($event)" />
+        <app-item-table [rows]="rows()" [disabled]="saving()" (removed)="removeRow($event)" />
+      </section>
+
+      <aside class="summary" aria-label="Summary">
+        <app-summary-panel [totalItems]="totalItems()" [totalQuantity]="totalQuantity()">
+          @if (savedMessage()) {
+            <p class="success" role="status">{{ savedMessage() }}</p>
+          }
+          @if (saveError()) {
+            <p class="error" role="alert">{{ saveError() }}</p>
+          }
+          <button
+            mat-flat-button
+            type="button"
+            class="save"
+            [disabled]="rows().length === 0 || saving()"
+            (click)="save()"
+          >
+            {{ saving() ? 'Saving…' : 'Save purchase bill' }}
+          </button>
+        </app-summary-panel>
+      </aside>
+    </div>
   </div>
-</main>
+</div>
