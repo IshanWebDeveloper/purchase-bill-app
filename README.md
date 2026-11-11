@@ -1,8 +1,9 @@
 # Purchase Bill App
 
-A two-page web application built for the Enhanzer *Full Stack Developer – Angular & .NET Core* assignment.
+A web application built for the Enhanzer *Full Stack Developer – Angular & .NET Core* assignment.
 
 - **Login** – signs in against the Enhanzer staging API and saves the user's locations to SQL Server.
+- **Dashboard** – the landing page after login. Three widgets over the signed-in user's purchase bills: the latest 5 bills (ID, Net Amount, No. of Items), the oldest 10 bill items (Purchase Bill ID, Item Name, Qty) and a donut chart of total quantity per item.
 - **Purchase Bill** – available only after login. Add items with live cost, margin and selling-price calculations, review them in a table with a running summary, and save the bill to the backend.
 
 ## Architecture
@@ -105,6 +106,10 @@ dotnet ef migrations script --idempotent -o ../../../database/purchase_bill_sche
 | `GET /api/locations` | Bearer | Saved locations (feeds the Batch dropdown). |
 | `POST /api/purchase-bills` | Bearer | Saves a bill: `{ items: [{ item, batchCode, standardCost, standardPrice, qty, freeQty, discountPercent }] }`. Returns `201` with server-calculated totals. |
 | `GET /api/purchase-bills/{id}` | Bearer | A bill. Only its creator can read it; anyone else gets `404`. |
+| `GET /api/purchase-bills?take=20` | Bearer | The caller's bills, newest first: `[{ id, createdAtUtc, netAmount, itemCount, totalQuantity }]` (`take` 1–50). |
+| `GET /api/dashboard/latest-bills?take=5` | Bearer | Dashboard widget 1: the caller's latest bills, same shape as above. Net Amount is the sum of the lines' Total Cost. |
+| `GET /api/dashboard/oldest-items?take=10` | Bearer | Dashboard widget 2: the caller's first saved bill lines, `[{ billId, itemName, qty }]`. |
+| `GET /api/dashboard/item-quantities` | Bearer | Dashboard widget 3: Qty summed per item, largest first, `[{ itemName, totalQuantity }]`. |
 
 Error responses are `application/problem+json`: `400` invalid input, `401` bad credentials or missing/invalid token, `502` Enhanzer unavailable.
 
@@ -141,7 +146,9 @@ backend/
   tests/PurchaseBill.Api.Tests/
 frontend/src/app/
   core/                   auth service, guards, interceptors, API services, models
+  layout/shell/            top bar + sidebar around the signed-in pages
   features/login/
+  features/dashboard/     dashboard page + latest-bills, oldest-items, item-quantities (SVG donut) widgets
   features/purchase-bill/ page + item-form, item-table, summary-panel components
 database/                 deliverable SQL script
 docker-compose.yml        local SQL Server
@@ -152,6 +159,7 @@ docker-compose.yml        local SQL Server
 - **Security.** Passwords are never stored: only a short-lived JWT (60 minutes), the expiry and the display name are kept, in `sessionStorage`, so closing the tab signs the user out. The Purchase Bill route is protected by a guard in the browser and by `[Authorize]` on the API. Any `401` from the API clears the session and returns to the login page.
 - **Enhanzer API behaviour.** It does not use HTTP status to report failures: a wrong password is HTTP 200 with `Doc_Msg: "Invalid Login Details"`, and an unknown email is HTTP 200 with `Status_Code: 401`. It also intermittently answers with HTTP 500 or an empty envelope, especially after being idle, and it mishandles chunked request bodies. The API client checks the body, sends a fixed-length request, and retries with a 60-second timeout.
 - **Validation in both places.** The form validates for fast feedback; the API validates again (data annotations, the item list, and that the batch is a saved location), because the browser can't be trusted.
+- **Dashboard.** Each widget calls its own endpoint, so one slow or failing widget does not hold up the others; each has its own Retry. The donut is plain SVG (no chart library), and every item keeps a fixed colour. Like single bills, the dashboard only ever shows the signed-in user's data.
 - **Batch list.** The dropdown shows every location saved so far, as the brief specifies ("from the previously saved Location_Details table"), not only the signed-in user's locations.
 
 ## Deployment (Azure, free tier)
