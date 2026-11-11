@@ -1,0 +1,16 @@
+<header class="welcome">
+  <div>
+    <h1>Welcome{{ auth.displayName() ? ', ' + auth.displayName() : '' }}</h1>
+    <p>Here is an overview of your purchase bills.</p>
+  </div>
+  <a mat-flat-button routerLink="/purchase-bill">
+    <mat-icon fontSet="material-symbols-outlined">add</mat-icon>
+    New purchase bill
+  </a>
+</header>
+
+<div class="grid">
+  <app-latest-bills />
+  <app-oldest-items />
+  <app-item-quantities />
+</div>
