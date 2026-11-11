@@ -135,6 +135,10 @@ public class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     [InlineData("GET", "/api/locations")]
     [InlineData("GET", "/api/purchase-bills/1")]
     [InlineData("POST", "/api/purchase-bills")]
+    [InlineData("GET", "/api/purchase-bills")]
+    [InlineData("GET", "/api/dashboard/latest-bills")]
+    [InlineData("GET", "/api/dashboard/oldest-items")]
+    [InlineData("GET", "/api/dashboard/item-quantities")]
     public async Task Protected_endpoints_return_401_without_a_token(string method, string url)
     {
         var response = await factory.CreateClient().SendAsync(new HttpRequestMessage(new HttpMethod(method), url));
@@ -215,5 +219,90 @@ public class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
 
         var badDiscount = new { items = new[] { new { item = "Mango", batchCode = "L1", standardCost = 1, standardPrice = 1, qty = 1, freeQty = 0, discountPercent = 101 } } };
         Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/purchase-bills", badDiscount)).StatusCode);
+    }
+
+    // ---- dashboard ----
+
+    private static object BillOf(params (string Item, int Qty)[] lines) => new
+    {
+        items = lines.Select(l => new { item = l.Item, batchCode = "L1", standardCost = 100, standardPrice = 150, qty = l.Qty, freeQty = 0, discountPercent = 20 }).ToArray(),
+    };
+
+    private static async Task<int> PostBillAsync(HttpClient client, object bill)
+    {
+        var response = await client.PostAsJsonAsync("/api/purchase-bills", bill);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<PurchaseBillResponse>(Json))!.Id;
+    }
+
+    [Fact]
+    public async Task Latest_bills_are_the_newest_five_with_net_amount_and_item_count()
+    {
+        var (client, _) = await SignedInAsync("latest@example.com");
+        var ids = new List<int>();
+        for (var n = 1; n <= 6; n++)
+            ids.Add(await PostBillAsync(client, BillOf(("Mango", 5), ("Apple", n))));
+
+        var latest = (await client.GetFromJsonAsync<List<BillSummaryResponse>>("/api/dashboard/latest-bills", Json))!;
+
+        Assert.Equal(ids.AsEnumerable().Reverse().Take(5), latest.Select(b => b.Id));
+        var newest = latest[0];
+        Assert.Equal(2, newest.ItemCount);
+        Assert.Equal(11, newest.TotalQuantity);
+        Assert.Equal(400m + 480m, newest.NetAmount); // 100 x 5 and 100 x 6, both less 20%
+    }
+
+    [Fact]
+    public async Task Oldest_items_are_the_first_ten_lines_in_the_order_they_were_saved()
+    {
+        var (client, _) = await SignedInAsync("oldest@example.com");
+        var first = await PostBillAsync(client, BillOf(("Mango", 1), ("Apple", 2), ("Banana", 3), ("Orange", 4)));
+        var second = await PostBillAsync(client, BillOf(("Grapes", 5), ("Kiwi", 6), ("Strawberry", 7), ("Mango", 8)));
+        var third = await PostBillAsync(client, BillOf(("Apple", 9), ("Banana", 10), ("Orange", 11), ("Grapes", 12)));
+
+        var oldest = (await client.GetFromJsonAsync<List<BillItemSummaryResponse>>("/api/dashboard/oldest-items", Json))!;
+
+        Assert.Equal(Enumerable.Range(1, 10), oldest.Select(i => i.Qty));
+        Assert.Equal([first, first, first, first, second, second, second, second, third, third], oldest.Select(i => i.BillId));
+        Assert.Equal("Mango", oldest[0].ItemName);
+    }
+
+    [Fact]
+    public async Task Item_quantities_are_grouped_by_item_name_largest_first()
+    {
+        var (client, _) = await SignedInAsync("donut@example.com");
+        await PostBillAsync(client, BillOf(("Mango", 5), ("Apple", 2)));
+        await PostBillAsync(client, BillOf(("mango", 3), ("Kiwi", 4)));
+
+        var totals = (await client.GetFromJsonAsync<List<ItemQuantityResponse>>("/api/dashboard/item-quantities", Json))!;
+
+        Assert.Equal(
+            [new ItemQuantityResponse("Mango", 8), new ItemQuantityResponse("Kiwi", 4), new ItemQuantityResponse("Apple", 2)],
+            totals);
+    }
+
+    [Fact]
+    public async Task Dashboard_and_bill_list_only_show_the_callers_own_bills()
+    {
+        var (owner, _) = await SignedInAsync("dash-owner@example.com");
+        await PostBillAsync(owner, BillOf(("Mango", 5)));
+        var (other, _) = await SignedInAsync("dash-other@example.com");
+
+        Assert.Empty((await other.GetFromJsonAsync<List<BillSummaryResponse>>("/api/dashboard/latest-bills", Json))!);
+        Assert.Empty((await other.GetFromJsonAsync<List<BillItemSummaryResponse>>("/api/dashboard/oldest-items", Json))!);
+        Assert.Empty((await other.GetFromJsonAsync<List<ItemQuantityResponse>>("/api/dashboard/item-quantities", Json))!);
+        Assert.Empty((await other.GetFromJsonAsync<List<BillSummaryResponse>>("/api/purchase-bills", Json))!);
+        Assert.Single((await owner.GetFromJsonAsync<List<BillSummaryResponse>>("/api/purchase-bills", Json))!);
+    }
+
+    [Fact]
+    public async Task Take_is_clamped_to_the_allowed_range()
+    {
+        var (client, _) = await SignedInAsync("clamp@example.com");
+        await PostBillAsync(client, BillOf(("Mango", 1)));
+        await PostBillAsync(client, BillOf(("Apple", 1)));
+
+        Assert.Single((await client.GetFromJsonAsync<List<BillSummaryResponse>>("/api/dashboard/latest-bills?take=0", Json))!);
+        Assert.Equal(2, (await client.GetFromJsonAsync<List<BillSummaryResponse>>("/api/purchase-bills?take=1000", Json))!.Count);
     }
 }
