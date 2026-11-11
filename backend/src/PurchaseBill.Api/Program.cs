@@ -31,6 +31,7 @@ builder.Services.AddHttpClient<IEnhanzerClient, EnhanzerClient>((sp, client) =>
 });
 builder.Services.AddScoped<LocationService>();
 builder.Services.AddScoped<PurchaseBillService>();
+builder.Services.AddScoped<DashboardService>();
 builder.Services.AddSingleton<TokenService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
