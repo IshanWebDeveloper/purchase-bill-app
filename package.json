@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "scripts": {
     "prepare": "husky",
-    "preinstall": "npx only-allow pnpm"
+    "preinstall": "npx only-allow pnpm",
+    "db:reset:azure": "pwsh -NoProfile -File scripts/reset-azure-db.ps1"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",
