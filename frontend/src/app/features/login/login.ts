@@ -53,7 +53,7 @@ export class Login {
 
     const { email, password } = this.form.getRawValue();
     this.auth.login({ email: email.trim(), password }).subscribe({
-      next: () => void this.router.navigate(['/purchase-bill']),
+      next: () => void this.router.navigate(['/dashboard']),
       error: (err: unknown) => {
         this.errorMessage.set(toUserMessage(err));
         this.loading.set(false);

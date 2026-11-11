@@ -5,7 +5,6 @@
       <h1>Purchase Bill</h1>
       <p>Enter Information for the Purchase Bill</p>
     </div>
-    <span class="user">{{ auth.displayName() }}</span>
     <div class="tools">
       <button type="button" mat-icon-button aria-label="Reload batches" title="Reload batches" (click)="loadLocations()">
         <mat-icon fontSet="material-symbols-outlined">refresh</mat-icon>
@@ -23,9 +22,9 @@
       >
         <mat-icon fontSet="material-symbols-outlined">check_circle</mat-icon>
       </button>
-      <button type="button" mat-icon-button aria-label="Log out" title="Log out" (click)="auth.logout()">
+      <a mat-icon-button routerLink="/dashboard" aria-label="Close and go to the dashboard" title="Close">
         <mat-icon fontSet="material-symbols-outlined">cancel</mat-icon>
-      </button>
+      </a>
     </div>
   </header>
 
@@ -63,7 +62,9 @@
       <aside class="summary" aria-label="Summary">
         <app-summary-panel [totalItems]="totalItems()" [totalQuantity]="totalQuantity()" [totals]="totals()">
           @if (savedMessage()) {
-            <p class="success" role="status">{{ savedMessage() }}</p>
+            <p class="success" role="status">
+              {{ savedMessage() }} <a routerLink="/dashboard">View dashboard</a>
+            </p>
           }
           @if (saveError()) {
             <p class="error" role="alert">{{ saveError() }}</p>

@@ -1,0 +1,143 @@
+$topbar-height: 48px;
+$sidebar-width: 76px;
+
+:host {
+  display: grid;
+  grid-template-columns: $sidebar-width minmax(0, 1fr);
+  grid-template-rows: $topbar-height minmax(0, 1fr);
+  grid-template-areas:
+    'topbar topbar'
+    'sidebar content';
+  min-height: 100dvh;
+  background: #e9edf3;
+  color: #2b2f36;
+
+  // Phone width: the sidebar becomes a strip of tabs under the top bar.
+  @media (max-width: 640px) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: $topbar-height auto minmax(0, 1fr);
+    grid-template-areas:
+      'topbar'
+      'sidebar'
+      'content';
+  }
+}
+
+.topbar {
+  grid-area: topbar;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px 0 20px;
+  color: #fff;
+  background: linear-gradient(90deg, #2aa7ec 0%, #1f63b8 50%, #1b2a86 100%);
+
+  button {
+    --mat-icon-button-icon-color: #fff;
+  }
+
+  @media (max-width: 640px) {
+    padding-left: 16px;
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 1.125rem;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0.95;
+}
+
+.sidebar {
+  grid-area: sidebar;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+  background: linear-gradient(180deg, #1f8fe0 0%, #1a6fd0 100%);
+
+  a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 4px;
+    border-left: 3px solid transparent;
+    color: rgb(255 255 255 / 85%);
+    text-decoration: none;
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    text-align: center;
+
+    &:hover {
+      background: rgb(255 255 255 / 10%);
+      color: #fff;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: -4px;
+    }
+
+    &.active {
+      border-left-color: #fff;
+      background: rgb(255 255 255 / 18%);
+      color: #fff;
+    }
+  }
+
+  .material-symbols-outlined {
+    font-size: 24px;
+  }
+
+  @media (max-width: 640px) {
+    flex-direction: row;
+    padding: 0 8px;
+
+    a {
+      flex-direction: row;
+      gap: 6px;
+      padding: 10px 12px;
+      border-left: 0;
+      border-bottom: 3px solid transparent;
+      font-size: 0.8125rem;
+
+      &.active {
+        border-bottom-color: #fff;
+      }
+    }
+
+    .material-symbols-outlined {
+      font-size: 20px;
+    }
+  }
+}
+
+.content {
+  grid-area: content;
+  min-width: 0;
+}

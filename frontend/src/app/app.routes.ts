@@ -4,14 +4,28 @@ import { authGuard, guestGuard } from './core/auth.guard';
 export const routes: Routes = [
   {
     path: 'login',
+    title: 'Login',
     canActivate: [guestGuard],
     loadComponent: () => import('./features/login/login').then((m) => m.Login),
   },
   {
-    path: 'purchase-bill',
+    // Signed-in pages share the shell: top bar plus sidebar navigation.
+    path: '',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/purchase-bill/purchase-bill').then((m) => m.PurchaseBill),
+    loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),
+    children: [
+      {
+        path: 'dashboard',
+        title: 'Dashboard',
+        loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+      },
+      {
+        path: 'purchase-bill',
+        title: 'Purchase Bill',
+        loadComponent: () => import('./features/purchase-bill/purchase-bill').then((m) => m.PurchaseBill),
+      },
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+    ],
   },
-  { path: '', pathMatch: 'full', redirectTo: 'purchase-bill' },
-  { path: '**', redirectTo: 'purchase-bill' },
+  { path: '**', redirectTo: 'dashboard' },
 ];

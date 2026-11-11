@@ -51,7 +51,7 @@ describe('Login', () => {
     expect(el.textContent).toContain('Enter a valid email address.');
   });
 
-  it('logs in with trimmed email and navigates to the purchase bill page', () => {
+  it('logs in with trimmed email and navigates to the dashboard', () => {
     const login = vi.fn().mockReturnValue(of({}));
     const { fill, submit, navigate } = setup(login);
 
@@ -60,7 +60,7 @@ describe('Login', () => {
     submit();
 
     expect(login).toHaveBeenCalledWith({ email: 'user@example.com', password: 'pw' });
-    expect(navigate).toHaveBeenCalledWith(['/purchase-bill']);
+    expect(navigate).toHaveBeenCalledWith(['/dashboard']);
   });
 
   it('shows a clear message and stays on the page when credentials are wrong', () => {

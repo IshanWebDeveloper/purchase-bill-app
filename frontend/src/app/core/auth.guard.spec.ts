@@ -35,8 +35,8 @@ describe('route guards', () => {
     expect(run(guestGuard, false).result).toBe(true);
   });
 
-  it('guestGuard sends a signed-in user to the purchase bill page', () => {
+  it('guestGuard sends a signed-in user to the dashboard', () => {
     const { result, router } = run(guestGuard, true);
-    expect(router.serializeUrl(result as UrlTree)).toBe('/purchase-bill');
+    expect(router.serializeUrl(result as UrlTree)).toBe('/dashboard');
   });
 });

@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from './auth.service';
 
-/** Blocks the Purchase Bill page unless the user is signed in. */
+/** Blocks the signed-in pages (dashboard, purchase bill) unless the user is signed in. */
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   return auth.isAuthenticated() ? true : inject(Router).createUrlTree(['/login']);
@@ -11,5 +11,5 @@ export const authGuard: CanActivateFn = () => {
 /** Keeps signed-in users off the login page. */
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
-  return auth.isAuthenticated() ? inject(Router).createUrlTree(['/purchase-bill']) : true;
+  return auth.isAuthenticated() ? inject(Router).createUrlTree(['/dashboard']) : true;
 };

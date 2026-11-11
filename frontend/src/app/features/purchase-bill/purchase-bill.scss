@@ -1,10 +1,11 @@
 :host {
   display: block;
-  min-height: 100dvh;
   padding: 16px;
   box-sizing: border-box;
-  background: #e9edf3;
-  color: #2b2f36;
+
+  @media (max-width: 560px) {
+    padding: 8px;
+  }
 }
 
 .window {
@@ -48,28 +49,20 @@
     }
   }
 
-  .user {
-    margin-right: 8px;
-    font-size: 0.875rem;
-    opacity: 0.9;
-  }
-
   .tools {
     display: flex;
     align-items: center;
     gap: 4px;
   }
 
-  button {
+  button,
+  a {
     --mat-icon-button-icon-color: #fff;
     --mat-icon-button-disabled-icon-color: rgb(255 255 255 / 45%);
   }
 
   @media (max-width: 560px) {
     padding: 10px 12px;
-    .user {
-      display: none;
-    }
   }
 }
 
@@ -177,6 +170,11 @@
   font-size: 0.875rem;
   color: #14532d;
   background: #e3f6e8;
+
+  a {
+    color: inherit;
+    font-weight: 500;
+  }
 }
 
 .save {
